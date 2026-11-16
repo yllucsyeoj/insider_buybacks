@@ -110,3 +110,20 @@ def test_wls_raises_on_incomplete_weights():
     w = pd.Series(1.0, index=df.index[:-5])       # weights miss some rows -> NaN on reindex
     with pytest.raises(ValueError, match="weights missing"):
         wls_fe_regression(df, 126, weights=w)
+
+
+def test_time_holdout_weights_are_frozen_from_train():
+    """Weights applied to the test fit must use TRAIN firm variances, never
+    test ones — the core leakage guarantee."""
+    from insider_hb.wls import firm_variance, inverse_variance_weights
+    train = pd.DataFrame({"ticker": ["A"] * 4 + ["B"] * 4,
+                          "exc_126": [0.01, 0.02, 0.00, 0.03, 0.5, -0.4, 0.3, -0.2]})
+    test = pd.DataFrame({"ticker": ["A", "A", "B", "B"],
+                         "exc_126": [0.9, -0.9, 0.001, 0.002]})  # A & B variances flipped vs train
+    train_var = firm_variance(train, 126)
+    test_var = firm_variance(test, 126)
+    assert train_var["A"] != test_var["A"]                 # the two differ (precondition)
+    w_test = inverse_variance_weights(test, 126, train_var)
+    # every A row in test weighted by 1/train_var[A], NOT 1/test_var[A]
+    assert abs(w_test.iloc[0] - 1.0 / train_var["A"]) < 1e-9
+    assert abs(w_test.iloc[0] - 1.0 / test_var["A"]) > 1e-6
