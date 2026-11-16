@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 import pandas as pd
 
@@ -32,8 +33,8 @@ def build_ticker_data(
     limit: int = 200,
     horizons=DEFAULT_HORIZONS,
     *,
-    form4_fetcher=fetch_form4_xml,
-    price_fetcher=fetch_prices,
+    form4_fetcher: Callable[[str, int], list[tuple[str, str, str]]] = fetch_form4_xml,
+    price_fetcher: Callable[[str], pd.Series] = fetch_prices,
 ) -> TickerData:
     # --- officer Code-S sale events ---
     rows: list[dict] = []
