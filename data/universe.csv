@@ -1,0 +1,48 @@
+ticker,gov_tier,size_tier,dual_class,founder_ceo,notes
+AAPL,dispersed,mega,false,false,widely held; independent board; recon baseline
+MSFT,dispersed,mega,false,false,widely held
+JNJ,dispersed,mega,false,false,widely held
+PG,dispersed,mega,false,false,widely held
+JPM,dispersed,mega,false,false,widely held
+XOM,dispersed,mega,false,false,widely held
+KO,dispersed,large,false,false,widely held
+UNH,dispersed,mega,false,false,widely held
+HD,dispersed,large,false,false,widely held
+PFE,dispersed,large,false,false,widely held
+MRK,dispersed,large,false,false,widely held
+CSCO,dispersed,large,false,false,widely held
+INTC,dispersed,large,false,false,widely held
+VZ,dispersed,large,false,false,widely held
+DIS,dispersed,large,false,false,widely held
+COST,dispersed,large,false,false,widely held
+PEP,dispersed,large,false,false,widely held
+ABBV,dispersed,large,false,false,widely held
+CAT,dispersed,large,false,false,widely held
+IBM,dispersed,large,false,false,widely held
+ETSY,dispersed,mid,false,false,widely held mid-cap
+WMT,concentrated,mega,false,false,Walton family control ~45pct; not dual-class
+ORCL,concentrated,mega,false,false,Ellison ~40pct founder-chair control; recon case
+TSLA,concentrated,mega,false,false,Musk large holder outsized influence
+META,concentrated,mega,true,true,Zuckerberg super-voting B shares
+GOOGL,concentrated,mega,true,false,founder super-voting; Pichai CEO
+BRK-B,concentrated,mega,true,false,Buffett control; A/B dual class
+NKE,concentrated,large,true,false,Knight family B-share control
+PLTR,concentrated,large,true,true,multi-class; Karp CEO Thiel
+COIN,concentrated,large,true,true,Armstrong founder-CEO; dual class
+SHOP,concentrated,large,true,true,Lutke founder-CEO; founder share
+ABNB,concentrated,large,true,true,Chesky founder-CEO; dual class
+HOOD,concentrated,mid,true,true,Tenev founder-CEO; dual class
+RBLX,concentrated,mid,true,true,Baszucki founder-CEO; dual class
+DDOG,concentrated,mid,true,true,dual class; founder-CEO
+NET,concentrated,mid,true,true,Cloudflare; Prince founder-CEO; dual class
+ROKU,concentrated,mid,true,true,Wood founder-CEO; dual class
+DKNG,concentrated,mid,true,true,Robins founder-CEO; multi-class
+W,concentrated,mid,true,true,Wayfair; founders dual class
+LYFT,concentrated,mid,true,true,co-founders dual class
+PINS,concentrated,mid,true,false,dual class; founder stepped down
+NVDA,mixed,mega,false,true,Huang founder-CEO; broadly held otherwise
+AMZN,mixed,mega,false,false,Bezos founder large holder; Jassy CEO
+CRM,mixed,large,false,true,Benioff founder-CEO; widely held
+NFLX,mixed,large,false,false,Hastings co-founder exec chair
+SNOW,mixed,large,false,false,no founder-CEO; VC heritage
+U,mixed,mid,false,false,Unity; no founder-CEO
