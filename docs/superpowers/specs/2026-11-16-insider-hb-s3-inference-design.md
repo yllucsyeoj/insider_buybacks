@@ -85,7 +85,7 @@ All drop `NaN` in `exc_{h}` first; a group with zero non-NaN rows yields `NaN` (
 - `bootstrap_statistic(panel, stat_fn, *, cluster="ticker", n=2000, seed=0)`:
   1. Enumerate unique clusters (firm tickers, or firm×`YYYY-MM` strings for the variant).
   2. For each of `n` draws: sample clusters with replacement, concatenate their rows, apply `stat_fn`.
-  3. Return `{estimate, ci_lo, ci_hi, p_value, n_eff}` where `estimate` = `stat_fn` on the full panel,
+  3. Return `{estimate, ci_lo, ci_hi, p_value, n_boot}` where `estimate` = `stat_fn` on the full panel,
      CI = 2.5/97.5 percentiles of the bootstrap distribution, `p_value` = two-sided via the
      proportion of bootstrap replicates on the opposite side of zero (×2, clipped to [0,1]).
 - Deterministic under fixed `seed` (numpy `default_rng`).
@@ -170,7 +170,7 @@ synthetic panels/prices with known answers, no network.
 |------|-----------|
 | Overlapping windows inflate significance | Firm-cluster block bootstrap + calendar-time portfolio (each date once) + HAC SEs. Three independent angles must agree. |
 | Signal is regime-driven (few boom-bust names) | Report gov-tier heterogeneity and firm-clustered CIs, never a bare pooled mean. Firm-block bootstrap down-weights any single firm. |
-| Thin cells at long horizons (right-censoring) | Drop `NaN` per horizon; report `n_eff` per estimate; expect wider CIs at 252d. |
+| Thin cells at long horizons (right-censoring) | Drop `NaN` per horizon; report `n_valid` (events) per horizon and `n_boot` (replicates) per estimate; expect wider CIs at 252d. |
 | statsmodels FE via dummies is memory-heavy with 50 firms × many months | 50 + ~N-month dummies is small (hundreds of columns, 9k rows) — fine for OLS. If it ever isn't, within-transform demeaning is the fallback (not needed now). |
 | Strength ≠ signal (deferred control) | Documented limitation; `strength` enters the regression as a covariate so the opportunistic coefficient is already conditional on it. |
 
