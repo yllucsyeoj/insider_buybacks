@@ -23,8 +23,19 @@ def test_pooled_mean_equal():
 
 
 def test_pooled_mean_value_weighted():
-    # (100*-0.02 + 300*-0.10 + 100*0.04) / 500 = -0.28/500
+    # (100*-0.02 + 300*-0.10 + 100*0.04) / 500 = -0.28/5 (scaled by /100)
     assert abs(pooled_mean(_panel(), 21, weight="value") - (-0.28 / 5)) < 1e-9
+
+
+def test_pooled_mean_all_nan_returns_nan():
+    p = _panel().assign(exc_21=float("nan"))
+    assert np.isnan(pooled_mean(p, 21))
+    assert np.isnan(pooled_mean(p, 21, weight="value"))
+
+
+def test_pooled_mean_equal_without_value_column():
+    p = _panel().drop(columns=["value"])
+    assert abs(pooled_mean(p, 21) - (-0.08 / 3)) < 1e-9
 
 
 def test_opportunistic_contrast():

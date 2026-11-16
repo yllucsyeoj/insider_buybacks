@@ -12,20 +12,25 @@ def n_valid(panel: pd.DataFrame, h: int) -> int:
 
 
 def pooled_mean(panel: pd.DataFrame, h: int, weight: str = "equal") -> float:
-    """Mean forward excess return at horizon `h`. `weight` is 'equal' or 'value'."""
+    """Mean forward excess return at horizon `h`. `weight` is 'equal' or 'value'.
+
+    Value-weighting assumes non-negative `value` (sale notional); a non-positive
+    total weight yields NaN. The `value` column is only required for 'value'.
+    """
     col = f"exc_{h}"
-    df = panel[[col, "value"]].dropna(subset=[col])
-    if df.empty:
-        return float("nan")
     if weight == "value":
+        df = panel[[col, "value"]].dropna(subset=[col])
+        if df.empty:
+            return float("nan")
         w = df["value"]
         total = float(w.sum())
-        if total == 0:
+        if total <= 0:
             return float("nan")
         return float((df[col] * w).sum() / total)
     if weight != "equal":
         raise ValueError(f"unknown weight {weight!r}")
-    return float(df[col].mean())
+    s = panel[col].dropna()
+    return float("nan") if s.empty else float(s.mean())
 
 
 def opportunistic_contrast(panel: pd.DataFrame, h: int) -> float:
