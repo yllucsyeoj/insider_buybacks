@@ -46,3 +46,6 @@ CRM,mixed,large,false,true,Benioff founder-CEO; widely held
 NFLX,mixed,large,false,false,Hastings co-founder exec chair
 SNOW,mixed,large,false,false,no founder-CEO; VC heritage
 U,mixed,mid,false,false,Unity; no founder-CEO
+CROX,dispersed,small,false,false,widely held small-cap; no founder-CEO
+SFIX,concentrated,small,true,false,Stitch Fix; founder Class-B dual class
+YELP,mixed,small,false,true,Stoppelman co-founder-CEO; broadly held
