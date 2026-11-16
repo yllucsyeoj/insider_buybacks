@@ -23,17 +23,15 @@ def daily_portfolio_excess(
     firm_ret = {t: s.sort_index().pct_change() for t, s in prices.items()}
 
     contributions: dict[pd.Timestamp, list[float]] = {}
-    for ticker, sale in zip(panel["ticker"], pd.to_datetime(panel["date"])):
+    dates = pd.to_datetime(panel["date"])  # hoisted: no-op if already datetime64
+    for ticker, sale in zip(panel["ticker"], dates):
         fr = firm_ret.get(ticker)
         if fr is None:
             continue
-        window = fr.index[fr.index > sale][:h]   # half-open (sale, sale+h]
-        for day in window:
-            if day not in spy_ret.index:
-                continue
-            er = fr.loc[day] - spy_ret.loc[day]
-            if pd.notna(er):
-                contributions.setdefault(day, []).append(float(er))
+        window = fr.loc[fr.index > sale].iloc[:h]   # half-open (sale, sale+h]
+        aligned = window.sub(spy_ret).dropna()      # vectorized excess, NaN-safe
+        for day, er in aligned.items():
+            contributions.setdefault(day, []).append(float(er))
 
     if not contributions:
         return pd.Series(dtype=float, name="port_excess")

@@ -41,6 +41,24 @@ def test_unknown_ticker_skipped():
     assert daily.empty
 
 
+def test_empty_panel_returns_empty_series():
+    prices, spy = _prices()
+    panel = pd.DataFrame({"ticker": [], "date": []})
+    daily = daily_portfolio_excess(panel, prices, spy, h=2)
+    assert daily.empty
+
+
+def test_missing_spy_day_is_skipped():
+    prices, spy = _prices()
+    idx = prices["A"].index
+    spy = spy.drop(idx[1])          # SPY has no data on the first post-sale day
+    panel = pd.DataFrame({"ticker": ["B"], "date": [idx[0]]})
+    daily = daily_portfolio_excess(panel, prices, spy, h=2)
+    # day1 dropped (no SPY); day2 present
+    assert idx[1] not in daily.index
+    assert idx[2] in daily.index
+
+
 def test_calendar_time_test_returns_finite_stats():
     prices, spy = _prices()
     idx = prices["A"].index
