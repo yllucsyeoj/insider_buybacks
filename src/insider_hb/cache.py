@@ -3,7 +3,7 @@ re-runnable and resilient to EDGAR throttling. Pure I/O, no business logic."""
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Callable
 
@@ -19,7 +19,7 @@ def _fresh(fetched_iso: str, max_age_days: int) -> bool:
         age = datetime.now() - datetime.fromisoformat(fetched_iso)
     except (ValueError, TypeError):
         return False
-    return age.days < max_age_days
+    return age < timedelta(days=max_age_days)
 
 
 def get_or_fetch_form4_xml(
@@ -38,11 +38,15 @@ def get_or_fetch_form4_xml(
     if manifest.exists():
         man = json.loads(manifest.read_text())
         if _fresh(man.get("fetched", ""), max_age_days):
-            out = []
-            for acc, fdate in man["accessions"]:
-                xml = (d / f"{acc}.xml").read_text()
-                out.append((acc, fdate, xml))
-            return out
+            try:
+                out = [
+                    (acc, fdate, (d / f"{acc}.xml").read_text())
+                    for acc, fdate in man.get("accessions", [])
+                ]
+            except OSError:
+                out = None  # partial/corrupt cache → treat as a miss, re-fetch below
+            if out is not None:
+                return out
 
     rows = fetcher(ticker, limit)
     for acc, _fdate, xml in rows:

@@ -16,6 +16,18 @@ def test_form4_miss_then_hit(tmp_path):
     assert out2[0] == ("acc-1", "2025-01-01", "<x>1</x>")
     assert (tmp_path / "form4" / "acc-1.xml").exists()
 
+def test_form4_refetch_when_partial_cache(tmp_path):
+    calls = {"n": 0}
+    def fake(ticker, limit):
+        calls["n"] += 1
+        return [("acc-1", "2025-01-01", "<x>1</x>"), ("acc-2", "2025-01-02", "<x>2</x>")]
+
+    cache.get_or_fetch_form4_xml("TST", 200, fetcher=fake, cache_dir=tmp_path)
+    (tmp_path / "form4" / "acc-2.xml").unlink()  # simulate an interrupted prior run
+    out = cache.get_or_fetch_form4_xml("TST", 200, fetcher=fake, cache_dir=tmp_path)
+    assert calls["n"] == 2                       # partial cache → re-fetched, no crash
+    assert out[1] == ("acc-2", "2025-01-02", "<x>2</x>")
+
 def test_form4_refetch_when_stale(tmp_path):
     calls = {"n": 0}
     def fake(ticker, limit):
