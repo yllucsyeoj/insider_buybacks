@@ -1,6 +1,5 @@
 import os
 import pytest
-import pandas as pd
 
 from insider_hb.universe import Firm
 from insider_hb.cache import get_or_fetch_form4_xml, get_or_fetch_prices
