@@ -24,6 +24,10 @@ def main() -> None:
     out = Path("data") / f"{ticker}_sale_events.parquet"
     td.events.to_parquet(out)
 
+    if td.events.empty or "strength" not in td.events.columns:
+        print(f"{ticker}: 0 officer Code-S sales -> {out} (no summary)")
+        return
+
     summary = hb_summary(td.events.dropna(subset=["strength"]), td.price_features)
     print(f"{ticker}: {len(td.events)} officer Code-S sales -> {out}")
     print(json.dumps(summary, indent=2))

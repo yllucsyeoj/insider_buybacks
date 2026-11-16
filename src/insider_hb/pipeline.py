@@ -21,7 +21,9 @@ class TickerData:
 
 def _snap(idx: pd.DatetimeIndex, d: pd.Timestamp) -> pd.Timestamp:
     pos = idx.searchsorted(d)
-    return idx[min(pos, len(idx) - 1)]
+    if pos == len(idx):
+        return pd.NaT
+    return idx[pos]
 
 
 def build_ticker_data(
