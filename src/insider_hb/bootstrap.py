@@ -35,8 +35,14 @@ def bootstrap_statistic(
       - estimate: stat_fn on the full panel
       - ci_lo/ci_hi: 2.5/97.5 percentiles of the bootstrap distribution
       - p_value: two-sided, 2 x fraction of replicates on the opposite side of
-        zero from the estimate, clipped to [0, 1]
+        zero from the estimate, clipped to [0, 1]. Replicates exactly at zero
+        count as "opposite" (conservative by at most 1/n_boot).
       - n_boot: number of non-NaN bootstrap replicates
+
+    Intended scale: tens of clusters, n in the low thousands (the 50-firm panel
+    runs in a few seconds). `firm_month` clustering on a long panel yields
+    hundreds of clusters; still fine, but each replicate concatenates all of
+    them, so cost grows with cluster count.
     """
     estimate = stat_fn(panel)
     keys = _cluster_keys(panel, cluster)
@@ -57,7 +63,7 @@ def bootstrap_statistic(
                 "ci_hi": float("nan"), "p_value": float("nan"), "n_boot": 0}
     ci_lo, ci_hi = np.percentile(reps, [2.5, 97.5])
     if np.isnan(estimate) or estimate == 0:
-        p = 1.0
+        p = 1.0  # sign is 0 -> formula undefined; an exact-zero estimate cannot reject H0
     else:
         frac_opposite = float(np.mean(reps * np.sign(estimate) <= 0))
         p = min(1.0, 2 * frac_opposite)
