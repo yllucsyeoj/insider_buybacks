@@ -19,7 +19,7 @@ import pandas as pd
 
 sys.path.insert(0, "src")
 
-from insider_hb.universe import load_universe
+from insider_hb.universe import Firm, load_universe
 from insider_hb.cache import get_or_fetch_form4_xml, get_or_fetch_prices
 from insider_hb.fetch import fetch_insider_own_pct
 from insider_hb.pipeline import build_ticker_data
@@ -31,7 +31,7 @@ PER_FIRM_DIR = Path("data/cache/panel")
 RETRY_DELAY_S = 5.0
 
 
-def _build_one(firm, limit: int) -> pd.DataFrame:
+def _build_one(firm: Firm, limit: int) -> pd.DataFrame:
     td = build_ticker_data(
         firm.ticker,
         limit=limit,
@@ -52,10 +52,11 @@ def main() -> None:
     firms = load_universe(UNIVERSE)
     failed: list[str] = []
 
-    for firm in firms:
+    for i, firm in enumerate(firms):
         out_path = PER_FIRM_DIR / f"{firm.ticker}_events.parquet"
         if out_path.exists() and not args.force:
             continue
+        sys.stderr.write(f"[{i + 1}/{len(firms)}] {firm.ticker}\n")
         try:
             events = _build_one(firm, args.limit)
         except Exception:
@@ -68,7 +69,12 @@ def main() -> None:
                 continue
         events.to_parquet(out_path)
 
-    frames = [pd.read_parquet(p) for p in sorted(PER_FIRM_DIR.glob("*_events.parquet"))]
+    frames = []
+    for p in sorted(PER_FIRM_DIR.glob("*_events.parquet")):
+        try:
+            frames.append(pd.read_parquet(p))
+        except Exception as e:  # noqa: BLE001 — truncated parquet from an interrupted run
+            sys.stderr.write(f"WARN unreadable {p.name}, skipping: {e}\n")
     panel = assemble_panel(frames) if frames else pd.DataFrame(columns=PANEL_COLUMNS)
     panel.to_parquet(PANEL_OUT)
 
@@ -79,7 +85,8 @@ def main() -> None:
         "failed": failed,
         "n_events": int(len(panel)),
         "events_by_gov_tier": (
-            panel["gov_tier"].value_counts().to_dict() if not panel.empty else {}
+            {k: int(v) for k, v in panel["gov_tier"].value_counts().items()}
+            if not panel.empty else {}
         ),
         "horizon_coverage": {
             h: (float(panel[h].notna().mean()) if not panel.empty else 0.0)
