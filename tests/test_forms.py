@@ -34,3 +34,12 @@ def test_parse_discretionary_sale():
     assert f.aff10b5one is False
     assert f.plan_adoption_date is None
     assert f.transactions[0].shares == 50000.0
+
+def test_adoption_date_entered_into_iso():
+    f4 = parse_form4((FIX / "form4_10b51_entered_iso.xml").read_text())
+    assert f4.aff10b5one is True
+    assert f4.plan_adoption_date == "2024-09-15"
+
+def test_adoption_date_slash_format():
+    f4 = parse_form4((FIX / "form4_10b51_slashdate.xml").read_text())
+    assert f4.plan_adoption_date == "2024-09-15"
