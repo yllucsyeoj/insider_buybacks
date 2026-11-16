@@ -8,14 +8,14 @@ import pandas as pd
 
 from .universe import Firm
 
-_GOV_COLS = ["gov_tier", "size_tier", "dual_class", "founder_ceo", "insider_own_pct"]
+GOV_COLS = ["gov_tier", "size_tier", "dual_class", "founder_ceo", "insider_own_pct"]
 
 # S1 event columns (minus the `td` helper) followed by governance columns.
 PANEL_COLUMNS = [
     "ticker", "date", "owner", "role", "shares", "price", "value",
     "aff10b5one", "plan_adoption", "adoption_gap_days", "class", "opportunistic",
     "strength", "exc_21", "exc_63", "exc_126", "exc_252",
-] + _GOV_COLS
+] + GOV_COLS
 
 
 def attach_governance(
