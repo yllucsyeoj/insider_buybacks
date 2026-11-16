@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 import pandas as pd
 
@@ -31,10 +32,13 @@ def build_ticker_data(
     benchmark: str = "SPY",
     limit: int = 200,
     horizons=DEFAULT_HORIZONS,
+    *,
+    form4_fetcher: Callable[[str, int], list[tuple[str, str, str]]] = fetch_form4_xml,
+    price_fetcher: Callable[[str], pd.Series] = fetch_prices,
 ) -> TickerData:
     # --- officer Code-S sale events ---
     rows: list[dict] = []
-    for acc, _fdate, xml in fetch_form4_xml(ticker, limit):
+    for acc, _fdate, xml in form4_fetcher(ticker, limit):
         f4 = parse_form4(xml, acc)
         if not f4.is_officer:
             continue
@@ -62,8 +66,8 @@ def build_ticker_data(
     events = pd.DataFrame(rows)
 
     # --- daily price features ---
-    firm = fetch_prices(ticker)
-    bench = fetch_prices(benchmark)
+    firm = price_fetcher(ticker)
+    bench = price_fetcher(benchmark)
     strength = trailing_strength(firm).rename("strength")
     exc = forward_excess_returns(firm, bench, horizons)
     price_features = pd.concat([strength, exc], axis=1)

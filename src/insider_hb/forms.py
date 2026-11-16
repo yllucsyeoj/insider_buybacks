@@ -46,13 +46,29 @@ def _flag(root, path) -> bool:
     return v in ("1", "true")
 
 
-def _adopt_iso(raw: str | None) -> str | None:
-    if not raw:
+_DATE_FORMATS = [
+    (re.compile(r"[A-Z][a-z]+\s+\d{1,2},\s+\d{4}"), "%B %d, %Y"),
+    (re.compile(r"\d{4}-\d{2}-\d{2}"), "%Y-%m-%d"),
+    (re.compile(r"\d{1,2}/\d{1,2}/\d{4}"), "%m/%d/%Y"),
+]
+
+_ADOPT_TRIGGER = re.compile(r"10b5-1.*?(?:adopted|entered into)", re.IGNORECASE | re.DOTALL)
+
+
+def _find_adoption_date(text: str) -> str | None:
+    """Return ISO date of a 10b5-1 plan adoption mentioned in `text`, else None."""
+    trig = _ADOPT_TRIGGER.search(text)
+    if not trig:
         return None
-    try:
-        return dt.datetime.strptime(raw, "%B %d, %Y").date().isoformat()
-    except ValueError:
-        return None
+    tail = text[trig.end():]
+    for pat, fmt in _DATE_FORMATS:
+        m = pat.search(tail)
+        if m:
+            try:
+                return dt.datetime.strptime(m.group(0), fmt).date().isoformat()
+            except ValueError:
+                continue
+    return None
 
 
 def parse_form4(xml: str, accession: str | None = None) -> Form4:
@@ -60,12 +76,10 @@ def parse_form4(xml: str, accession: str | None = None) -> Form4:
 
     aff = _flag(root, "aff10b5One")
 
-    adopt_raw = None
+    adopt_iso = None
     for fn in root.findall("footnotes/footnote"):
-        txt = fn.text or ""
-        m = re.search(r"10b5-1[^<]*?adopted[^<]*?on\s+([A-Z][a-z]+\s+\d{1,2},\s+\d{4})", txt)
-        if m:
-            adopt_raw = m.group(1)
+        adopt_iso = _find_adoption_date(fn.text or "")
+        if adopt_iso:
             break
 
     txns: list[Txn] = []
@@ -96,6 +110,6 @@ def parse_form4(xml: str, accession: str | None = None) -> Form4:
         is_ten_percent=_flag(root, f"{rel}/isTenPercentOwner"),
         officer_title=_text(root, f"{rel}/officerTitle", "") or "",
         aff10b5one=aff,
-        plan_adoption_date=_adopt_iso(adopt_raw),
+        plan_adoption_date=adopt_iso,
         transactions=txns,
     )

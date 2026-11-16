@@ -42,3 +42,15 @@ def fetch_prices(ticker: str, period: str = "6y") -> pd.Series:
     s.index = pd.to_datetime(s.index).tz_localize(None)
     s.name = ticker
     return s
+
+
+def fetch_insider_own_pct(ticker: str) -> float | None:
+    """Best-effort current insider-ownership fraction from yfinance. None on failure.
+
+    NOTE: this is a current snapshot, not point-in-time — an audit signal only.
+    """
+    try:
+        pct = yf.Ticker(ticker).info.get("heldPercentInsiders")
+        return float(pct) if pct is not None else None
+    except Exception:
+        return None
