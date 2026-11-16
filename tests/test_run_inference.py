@@ -41,9 +41,11 @@ def _prices():
 
 
 def test_run_inference_full_schema():
+    import json
     prices, spy = _prices()
     res = run_inference(_panel(), prices, spy, horizons=(21, 63, 126, 252),
                         bootstrap_n=200, seed=0)
+    json.dumps(res)  # must be plain-Python serializable (no numpy scalars leaking in)
     assert res["meta"]["bootstrap_n"] == 200
     for h in (21, 63, 126, 252):
         block = res["horizons"][str(h)]

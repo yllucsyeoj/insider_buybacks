@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pandas as pd
 
-sys.path.insert(0, "src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from insider_hb.estimands import (
     pooled_mean, opportunistic_contrast, gov_tier_means, n_valid,
@@ -112,7 +112,7 @@ def findings_markdown(res: dict) -> str:
 
 
 def _verdict(res: dict) -> str:
-    h = "252" if "252" in res["horizons"] else list(res["horizons"])[-1]
+    h = max(res["horizons"], key=int)  # longest horizon, order-independent
     b = res["horizons"][h]
     eq, oc = b["pooled_mean_equal"], b["opportunistic_contrast"]
     neg = eq["ci_hi"] < 0
@@ -149,8 +149,16 @@ def main() -> None:
 
     panel = pd.read_parquet(args.panel)
     cache = Path(args.cache)
-    prices = _load_prices(cache, sorted(panel["ticker"].unique()))
-    spy = pd.read_parquet(cache / "SPY.parquet")["value"]
+    tickers = sorted(panel["ticker"].unique())
+    prices = _load_prices(cache, tickers)
+    missing = [t for t in tickers if t not in prices]
+    if missing:
+        print(f"warning: no price cache for {len(missing)} tickers: {missing}",
+              file=sys.stderr)
+    spy_path = cache / "SPY.parquet"
+    if not spy_path.exists():
+        raise SystemExit(f"SPY benchmark cache missing at {spy_path}")
+    spy = pd.read_parquet(spy_path)["value"]
 
     res = run_inference(panel, prices, spy, bootstrap_n=args.bootstrap_n, seed=args.seed)
     res["meta"]["panel_sha"] = hashlib.sha256(
