@@ -10,7 +10,7 @@ SIZE_TIERS = {"mega", "large", "mid", "small"}
 _REQUIRED = ["ticker", "gov_tier", "size_tier", "dual_class", "founder_ceo", "notes"]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Firm:
     ticker: str
     gov_tier: str
@@ -38,6 +38,8 @@ def load_universe(path: str | Path) -> list[Firm]:
             raise ValueError(f"universe.csv missing columns: {missing}")
         for row in reader:
             ticker = row["ticker"].strip()
+            if not ticker:
+                raise ValueError(f"empty ticker in row: {row}")
             gov = row["gov_tier"].strip()
             size = row["size_tier"].strip()
             if gov not in GOV_TIERS:
