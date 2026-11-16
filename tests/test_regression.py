@@ -48,4 +48,14 @@ def test_drops_nan_rows():
     df = _synthetic()
     df.loc[df.index[:5], "exc_63"] = np.nan
     table = fe_regression(df, 63)        # must not raise
-    assert np.isfinite(table[0]["coef"])
+    opp = next(r for r in table if r["term"] == "opportunistic")
+    assert abs(opp["coef"] - (-0.08)) < 0.015   # still recovers the effect
+
+
+def test_non_positive_value_rows_excluded():
+    df = _synthetic()
+    df.loc[df.index[:4], "value"] = 0.0        # $0 rows must not contaminate log_value
+    df.loc[df.index[4:8], "value"] = -5.0      # negative must not leak NaN into the design
+    table = fe_regression(df, 63)              # must not raise
+    opp = next(r for r in table if r["term"] == "opportunistic")
+    assert np.isfinite(opp["coef"])
