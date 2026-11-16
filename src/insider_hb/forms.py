@@ -34,7 +34,7 @@ class Form4:
     transactions: list[Txn] = field(default_factory=list)
 
 
-def _text(el, path, default=None):
+def _text(el: ET.Element, path: str, default: str | None = None) -> str | None:
     found = el.find(path)
     if found is not None and found.text is not None:
         return found.text.strip()
@@ -58,8 +58,7 @@ def _adopt_iso(raw: str | None) -> str | None:
 def parse_form4(xml: str, accession: str | None = None) -> Form4:
     root = ET.fromstring(xml.encode("utf-8") if isinstance(xml, str) else xml)
 
-    aff_el = root.find("aff10b5One")
-    aff = (aff_el.text or "").strip().lower() in ("1", "true") if aff_el is not None else False
+    aff = _flag(root, "aff10b5One")
 
     adopt_raw = None
     for fn in root.findall("footnotes/footnote"):
