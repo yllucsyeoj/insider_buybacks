@@ -177,6 +177,24 @@ def findings_markdown(res: dict) -> str:
             lines.append(_row(r["term"], r))
         lines.append("")
 
+    # Secondary finding: the discretionary channel (the S3 headline) does not
+    # survive once firm variance is handled — report its focal-horizon numbers.
+    lines += ["## Discretionary channel (does not survive)", "",
+              "The S3 writeup attributed the signal to an opportunistic/discretionary "
+              "flag. In the WLS regressor tables above, `discretionary` is "
+              "not significant at the focal horizons — the earlier result was a "
+              "two-firm (PLTR, RBLX) concentration artifact, not a cross-firm effect. "
+              "Focal-horizon WLS `discretionary` estimates:", ""]
+    for h in ("63", "126"):
+        blk = res["horizons"].get(h)
+        if not blk:
+            continue
+        d = next((r for r in blk["full_sample"]["wls_table"]
+                  if r["term"] == "discretionary"), None)
+        if d:
+            lines.append(f"- h={h}: discretionary {_fmt(d['coef'])} (p={d['p']:.3f})")
+    lines.append("")
+
     v = res["verdict"]
     lines += ["## Verdict", ""]
     for h, vb in v["by_horizon"].items():

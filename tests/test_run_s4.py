@@ -74,4 +74,5 @@ def test_findings_markdown_has_estimators_verdict_and_caveat():
     assert "WLS" in md and "OLS" in md
     assert "strength" in md.lower()
     assert "spent" in md.lower() or "replication" in md.lower()   # honest caveat present
+    assert "discretionary" in md.lower()   # secondary "does not survive" note present
     assert "Verdict" in md

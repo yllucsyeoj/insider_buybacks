@@ -69,6 +69,13 @@ Rows: 9009 · time cutoff: 2024-01-01 · firm seed: 7 · generated: 2026-11-17
 | opp_plan | +0.0396 | 0.0299 | 1.32 | 0.186 | [-0.0191, +0.0982] | 5060 | 45 |
 | log_value | -0.0027 | 0.0026 | -1.04 | 0.298 | [-0.0079, +0.0024] | 5060 | 45 |
 
+## Discretionary channel (does not survive)
+
+The S3 writeup attributed the signal to an opportunistic/discretionary flag. In the WLS regressor tables above, `discretionary` is not significant at the focal horizons — the earlier result was a two-firm (PLTR, RBLX) concentration artifact, not a cross-firm effect. Focal-horizon WLS `discretionary` estimates:
+
+- h=63: discretionary -0.0472 (p=0.125)
+- h=126: discretionary -0.0497 (p=0.105)
+
 ## Verdict
 
 - **h=21: strength not robust** — full-sample sig-neg: True, test-window sig-neg: False, firm-halves sign-consistent: True.
