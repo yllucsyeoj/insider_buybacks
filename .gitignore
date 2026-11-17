@@ -6,3 +6,6 @@ data/
 .env
 .sidecar/
 *.egg-info/
+.DS_Store
+.mcp.json
+.claude/
