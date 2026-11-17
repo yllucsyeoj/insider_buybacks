@@ -64,3 +64,14 @@ def test_verdict_truth_table():
     assert testfail["by_horizon"]["126"]["robust"] is False
     signflip = _v({"126": blk(-0.2, 0.01, -0.2, 0.02, -0.1, +0.1)})
     assert signflip["by_horizon"]["126"]["robust"] is False
+
+
+def test_findings_markdown_has_estimators_verdict_and_caveat():
+    findings_markdown = run_s4_mod.findings_markdown
+    res = run_s4(_panel(), horizons=(63, 126))
+    md = findings_markdown(res)
+    assert "# S4" in md
+    assert "WLS" in md and "OLS" in md
+    assert "strength" in md.lower()
+    assert "spent" in md.lower() or "replication" in md.lower()   # honest caveat present
+    assert "Verdict" in md

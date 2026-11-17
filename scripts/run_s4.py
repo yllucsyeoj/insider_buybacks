@@ -121,3 +121,102 @@ def _verdict(horizons_out: dict) -> dict:
                    "firm_halves_sign_consistent": bool(c3)}
     return {"by_horizon": by_h,
             "focal_robust": bool(by_h.get("126", {}).get("robust", False))}
+
+
+def _fmt(x) -> str:
+    return "n/a" if x != x else f"{x:+.4f}"   # x!=x catches NaN
+
+
+def _row(label, r) -> str:
+    return (f"| {label} | {_fmt(r['coef'])} | {r['se']:.4f} | {r['t']:.2f} | "
+            f"{r['p']:.3f} | [{_fmt(r['ci_lo'])}, {_fmt(r['ci_hi'])}] | "
+            f"{r['n']} | {r['n_firms']} |")
+
+
+def findings_markdown(res: dict) -> str:
+    m = res["meta"]
+    lines = ["# S4 — Variance-Robust (WLS) Strength Inference", "",
+             f"Rows: {m['n_rows']} · time cutoff: {m['time_cutoff']} · "
+             f"firm seed: {m['firm_seed']} · generated: {m['generated']}", "",
+             "> **Caveat:** the panel is already spent (2024+ was examined during "
+             "exploration). The time holdout below is a replication/stability check, "
+             "not a pristine out-of-sample test. WLS shifts the estimand toward "
+             "low-variance firms; equal-weight OLS is printed alongside as the "
+             "conservative bound.", ""]
+
+    lines += ["## Strength coefficient by estimator (full sample)", "",
+              "| h | WLS (primary) | OLS (bound) | z-scored DV |",
+              "|---|---|---|---|"]
+    for h, blk in res["horizons"].items():
+        fs = blk["full_sample"]
+        lines.append(
+            f"| {h} | {_fmt(fs['wls']['coef'])} (p={fs['wls']['p']:.3f}) | "
+            f"{_fmt(fs['ols']['coef'])} (p={fs['ols']['p']:.3f}) | "
+            f"{_fmt(fs['zscore']['coef'])} (p={fs['zscore']['p']:.3f}) |")
+
+    lines += ["", "## Time holdout — WLS strength (weights frozen from train)", "",
+              "| h | train (pre-cutoff) | test (post-cutoff) |", "|---|---|---|"]
+    for h, blk in res["horizons"].items():
+        t = blk["time_holdout"]
+        lines.append(f"| {h} | {_fmt(t['train']['coef'])} (p={t['train']['p']:.3f}) | "
+                     f"{_fmt(t['test']['coef'])} (p={t['test']['p']:.3f}) |")
+
+    lines += ["", "## Firm holdout — WLS strength (secondary, sign check)", "",
+              "| h | half A | half B |", "|---|---|---|"]
+    for h, blk in res["horizons"].items():
+        f = blk["firm_holdout"]
+        lines.append(f"| {h} | {_fmt(f['half_a']['coef'])} (p={f['half_a']['p']:.3f}) | "
+                     f"{_fmt(f['half_b']['coef'])} (p={f['half_b']['p']:.3f}) |")
+
+    lines += ["", "## Full WLS regressor table", ""]
+    for h, blk in res["horizons"].items():
+        lines += [f"### h = {h}", "",
+                  "| term | coef | se | t | p | 95% CI | n | n_firms |",
+                  "|------|------|----|---|---|--------|---|---------|"]
+        for r in blk["full_sample"]["wls_table"]:
+            lines.append(_row(r["term"], r))
+        lines.append("")
+
+    v = res["verdict"]
+    lines += ["## Verdict", ""]
+    for h, vb in v["by_horizon"].items():
+        verdict = ("ROBUST" if vb["robust"] else "not robust")
+        lines.append(
+            f"- **h={h}: strength {verdict}** — full-sample sig-neg: "
+            f"{vb['full_sample_sig_neg']}, test-window sig-neg: "
+            f"{vb['test_window_sig_neg']}, firm-halves sign-consistent: "
+            f"{vb['firm_halves_sign_consistent']}.")
+    lines += ["",
+              ("At the focal 126-day horizon, the variance-robust WLS estimate of "
+               "sell-into-strength -> forward excess is "
+               + ("robust by the pre-registered criteria."
+                  if v["focal_robust"] else
+                  "not robust by the pre-registered criteria."))]
+    return "\n".join(lines) + "\n"
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--panel", default="data/panel.parquet")
+    ap.add_argument("--out-dir", default="results")
+    ap.add_argument("--time-cutoff", default="2024-01-01")
+    ap.add_argument("--firm-seed", type=int, default=7)
+    args = ap.parse_args()
+
+    panel = pd.read_parquet(args.panel)
+    res = run_s4(panel, time_cutoff=args.time_cutoff, firm_seed=args.firm_seed)
+    res["meta"]["panel_sha"] = hashlib.sha256(
+        Path(args.panel).read_bytes()).hexdigest()[:12]
+
+    out = Path(args.out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "s4_wls_inference.json").write_text(json.dumps(res, indent=2))
+    (out / "s4_wls_findings.md").write_text(findings_markdown(res))
+    print(json.dumps({"n_rows": res["meta"]["n_rows"],
+                      "focal_robust": res["verdict"]["focal_robust"],
+                      "wrote": [str(out / "s4_wls_inference.json"),
+                                str(out / "s4_wls_findings.md")]}), file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
