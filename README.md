@@ -2,7 +2,7 @@
 
 *A study of 9,009 officer stock sales across 48 US companies, and what happened to the share price next.*
 
-> **Part of my analytics portfolio.** I find why the numbers aren't working and build the analysis that proves it. This is a self-directed piece: it shows how I work when no one is telling me the answer. Full writeup below; the code and 84 offline tests are in this repo.
+> **Part of my analytics portfolio.** This is a self-directed piece: it shows how I work when no one is telling me the answer. Full writeup below; the code and 84 offline tests are in this repo.
 > More work and contact: [portfolio hub](https://yllucsyeoj.github.io/portfolio) · scully.joey@gmail.com
 
 ---
@@ -45,4 +45,4 @@ A historical association checked for robustness, not a prediction made in advanc
 
 ---
 
-*Built by Joey Scully. Product & Commercial Analytics consultant: I find why the numbers aren't working and build the fix. Available for remote interim and contract work.*
+*Built by Joey Scully. Product and Commercial Analytics consultant. Available for remote interim and contract work.*
